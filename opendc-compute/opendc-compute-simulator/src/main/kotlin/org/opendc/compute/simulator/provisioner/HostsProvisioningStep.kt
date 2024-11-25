@@ -30,6 +30,8 @@ import org.opendc.compute.topology.specs.HostSpec
 import org.opendc.simulator.Multiplexer
 import org.opendc.simulator.compute.power.SimPowerSource
 import org.opendc.simulator.engine.FlowEngine
+import org.opendc.simulator.compute.power.SimPowerManager
+import org.opendc.simulator.compute.power.SimBattery
 
 /**
  * A [ProvisioningStep] that provisions a list of hosts for a [ComputeService].
@@ -50,6 +52,7 @@ public class HostsProvisioningStep internal constructor(
             ) { "Compute service $serviceDomain does not exist" }
         val simHosts = mutableSetOf<SimHost>()
         val simPowerSources = mutableListOf<SimPowerSource>()
+        val simPowerManagers = mutableListOf<SimPowerManager>()
 
         val engine = FlowEngine.create(ctx.dispatcher)
         val graph = engine.newGraph()
@@ -60,12 +63,20 @@ public class HostsProvisioningStep internal constructor(
             val carbonFragments = getCarbonFragments(cluster.powerSource.carbonTracePath)
 
             val simPowerSource = SimPowerSource(graph, cluster.powerSource.totalPower.toDouble(), carbonFragments, startTime)
+            val simBattery = SimBattery(graph, cluster.powerSource.totalPower.toDouble(), startTime);
 
-            service.addPowerSource(simPowerSource)
-            simPowerSources.add(simPowerSource)
+            val simPowerManager = SimPowerManager(graph, cluster.powerSource.totalPower.toDouble(), startTime)
+
+            //service.addPowerSource(simPowerSource)
+            //simPowerSources.add(simPowerSource)
+
+            service.addPowerManager(simPowerManager)
+            simPowerManagers.add(simPowerManager)
 
             val powerMux = Multiplexer(graph)
-            graph.addEdge(powerMux, simPowerSource)
+            graph.addEdge(simPowerManager, simPowerSource)
+            graph.addEdge(simPowerManager, simBattery)
+            graph.addEdge(powerMux, simPowerManager)
 
             // Create hosts, they are connected to the powerMux when SimMachine is created
             for (hostSpec in cluster.hostSpecs) {

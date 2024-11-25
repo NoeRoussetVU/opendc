@@ -36,6 +36,7 @@ import org.opendc.compute.simulator.telemetry.table.HostTableReaderImpl
 import org.opendc.compute.simulator.telemetry.table.PowerSourceTableReaderImpl
 import org.opendc.compute.simulator.telemetry.table.ServiceTableReaderImpl
 import org.opendc.compute.simulator.telemetry.table.TaskTableReaderImpl
+import org.opendc.simulator.compute.power.SimPowerManager
 import org.opendc.simulator.compute.power.SimPowerSource
 import java.time.Duration
 
@@ -83,7 +84,7 @@ public class ComputeMetricReader(
     /**
      * Mapping from [SimPowerSource] instances to [PowerSourceTableReaderImpl]
      */
-    private val powerSourceTableReaders = mutableMapOf<SimPowerSource, PowerSourceTableReaderImpl>()
+    private val powerSourceTableReaders = mutableMapOf<SimPowerManager, PowerSourceTableReaderImpl>()
 
     /**
      * The background job that is responsible for collecting the metrics every cycle.
@@ -141,9 +142,9 @@ public class ComputeMetricReader(
             }
             this.service.clearTasksToRemove()
 
-            for (simPowerSource in this.service.powerSources) {
+            for (simPowerManager in this.service.powerManagers) {
                 val reader =
-                    this.powerSourceTableReaders.computeIfAbsent(simPowerSource) {
+                    this.powerSourceTableReaders.computeIfAbsent(simPowerManager) {
                         PowerSourceTableReaderImpl(
                             it,
                             startTime,

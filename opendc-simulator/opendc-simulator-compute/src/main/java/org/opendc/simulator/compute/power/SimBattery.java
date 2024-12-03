@@ -23,15 +23,12 @@
 package org.opendc.simulator.compute.power;
 
 import org.opendc.simulator.compute.cpu.SimCpu;
-import org.opendc.simulator.engine.FlowEdge;
-import org.opendc.simulator.engine.FlowGraph;
-import org.opendc.simulator.engine.FlowNode;
-import org.opendc.simulator.engine.FlowSupplier;
+import org.opendc.simulator.engine.*;
 
 /**
  * A {@link SimPsu} implementation that estimates the power consumption based on CPU usage.
  */
-public final class SimBattery  extends FlowNode implements FlowSupplier {
+public final class SimBattery  extends FlowNode implements FlowSupplier, FlowConsumer {
     private long lastUpdate;
 
     private double powerDemand = 0.0f;
@@ -39,9 +36,10 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
     private double totalEnergyUsage = 0.0f;
 
     private FlowEdge muxEdge;
+    private FlowEdge managerEdge;
 
-    private double capacity = Long.MAX_VALUE;
-    private double currentCapacity = Long.MAX_VALUE;
+    private double capacity = 1000000.0f;
+    private double currentCapacity = 900000.0f;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Basic Getters and Setters
@@ -114,12 +112,6 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
     @Override
     public long onUpdate(long now) {
         updateCounters();
-        double powerSupply = this.powerDemand;
-
-        if (powerSupply != this.powerSupplied) {
-            this.pushSupply(this.muxEdge, powerSupply);
-        }
-
         return Long.MAX_VALUE;
     }
 
@@ -149,14 +141,19 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
 
     @Override
     public void handleDemand(FlowEdge consumerEdge, double newPowerDemand) {
-
         this.powerDemand = newPowerDemand;
+
+        double powerSupply = this.powerDemand;
+
+        if (powerSupply != this.powerSupplied) {
+            this.pushSupply(this.muxEdge, powerSupply);
+        }
         this.invalidate();
     }
 
     @Override
     public void pushSupply(FlowEdge consumerEdge, double newSupply) {
-
+        this.currentCapacity -= newSupply;
         this.powerSupplied = newSupply;
         consumerEdge.pushSupply(newSupply);
     }
@@ -175,12 +172,23 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
     // Battery Related functionality
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public double supply(double newSupply){
-        this.currentCapacity -= newSupply;
-        return newSupply;
+    @Override
+    public void handleSupply(FlowEdge supplierEdge, double newSupply) {
+        this.currentCapacity += newSupply;
     }
 
-    public void charge(double newCharge){
-        this.currentCapacity += newCharge;
+    @Override
+    public void pushDemand(FlowEdge supplierEdge, double newDemand) {
+
+    }
+
+    @Override
+    public void addSupplierEdge(FlowEdge supplierEdge) {
+        this.managerEdge = supplierEdge;
+    }
+
+    @Override
+    public void removeSupplierEdge(FlowEdge supplierEdge) {
+
     }
 }

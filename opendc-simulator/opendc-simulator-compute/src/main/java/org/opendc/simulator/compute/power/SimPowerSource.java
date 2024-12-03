@@ -127,12 +127,6 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     @Override
     public long onUpdate(long now) {
         updateCounters();
-        double powerSupply = this.powerDemand;
-
-        if (powerSupply != this.powerSupplied) {
-            this.pushSupply(this.managerEdge, powerSupply);
-        }
-
         return Long.MAX_VALUE;
     }
 
@@ -164,6 +158,12 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     @Override
     public void handleDemand(FlowEdge consumerEdge, double newPowerDemand) {
         this.powerDemand = newPowerDemand;
+
+        double powerSupply = this.powerDemand;
+
+        if (powerSupply != this.powerSupplied) {
+            this.pushSupply(this.managerEdge, powerSupply);
+        }
         this.invalidate();
     }
 
@@ -185,6 +185,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
 
     // Update the carbon intensity of the power source
     public void updateCarbonIntensity(double carbonIntensity) {
+        System.out.println("update carbs " + carbonIntensity);
         this.updateCounters();
         this.carbonIntensity = carbonIntensity;
     }

@@ -22,28 +22,28 @@
 
 package org.opendc.compute.simulator.telemetry.table
 
-import org.opendc.simulator.compute.power.SimPowerSource
+import org.opendc.simulator.compute.power.SimPowerManager
 import java.time.Duration
 import java.time.Instant
 
 /**
  * An aggregator for task metrics before they are reported.
  */
-public class PowerSourceTableReaderImpl(
-    powerSource: SimPowerSource,
+public class PowerManagerTableReaderImpl(
+    powerManager: SimPowerManager,
     private val startTime: Duration = Duration.ofMillis(0),
-) : PowerSourceTableReader {
-    override fun copy(): PowerSourceTableReader {
-        val newPowerSourceTable =
-            PowerSourceTableReaderImpl(
-                powerSource,
+) : PowerManagerTableReader {
+    override fun copy(): PowerManagerTableReader {
+        val newPowerManagerTable =
+            PowerManagerTableReaderImpl(
+                powerManager,
             )
-        newPowerSourceTable.setValues(this)
+        newPowerManagerTable.setValues(this)
 
-        return newPowerSourceTable
+        return newPowerManagerTable
     }
 
-    override fun setValues(table: PowerSourceTableReader) {
+    override fun setValues(table: PowerManagerTableReader) {
         _timestamp = table.timestamp
         _timestampAbsolute = table.timestampAbsolute
 
@@ -54,7 +54,7 @@ public class PowerSourceTableReaderImpl(
         _carbonEmission = table.carbonEmission
     }
 
-    private val powerSource = powerSource
+    private val powerManager = powerManager
 
     private var _timestamp = Instant.MIN
     override val timestamp: Instant
@@ -95,11 +95,11 @@ public class PowerSourceTableReaderImpl(
 
         _hostsConnected = 0
 
-        powerSource.updateCounters()
-        _powerDraw = powerSource.powerDraw
-        _energyUsage = powerSource.energyUsage
-        _carbonIntensity = powerSource.carbonIntensity
-        _carbonEmission = powerSource.carbonEmission
+        powerManager.updateCounters()
+        _powerDraw = powerManager.powerDraw
+        _energyUsage = powerManager.energyUsage
+        _carbonIntensity = powerManager.carbonIntensity
+        _carbonEmission = powerManager.carbonEmission
     }
 
     /**

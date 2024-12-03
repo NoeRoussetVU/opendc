@@ -22,39 +22,37 @@
 
 package org.opendc.compute.simulator.telemetry.table
 
-import org.opendc.simulator.compute.power.SimPowerSource
+import org.opendc.simulator.compute.power.SimBattery
 import java.time.Duration
 import java.time.Instant
 
 /**
  * An aggregator for task metrics before they are reported.
  */
-public class PowerSourceTableReaderImpl(
-    powerSource: SimPowerSource,
+public class BatteryTableReaderImpl(
+    battery: SimBattery,
     private val startTime: Duration = Duration.ofMillis(0),
-) : PowerSourceTableReader {
-    override fun copy(): PowerSourceTableReader {
-        val newPowerSourceTable =
-            PowerSourceTableReaderImpl(
+) : BatteryTableReader {
+    override fun copy(): BatteryTableReader {
+        val newBatteryTable =
+            BatteryTableReaderImpl(
                 powerSource,
             )
-        newPowerSourceTable.setValues(this)
+        newBatteryTable.setValues(this)
 
-        return newPowerSourceTable
+        return newBatteryTable
     }
 
-    override fun setValues(table: PowerSourceTableReader) {
+    override fun setValues(table: BatteryTableReader) {
         _timestamp = table.timestamp
         _timestampAbsolute = table.timestampAbsolute
 
         _hostsConnected = table.hostsConnected
         _powerDraw = table.powerDraw
         _energyUsage = table.energyUsage
-        _carbonIntensity = table.carbonIntensity
-        _carbonEmission = table.carbonEmission
     }
 
-    private val powerSource = powerSource
+    private val powerSource = battery
 
     private var _timestamp = Instant.MIN
     override val timestamp: Instant
@@ -77,15 +75,6 @@ public class PowerSourceTableReaderImpl(
     private var _energyUsage = 0.0
     private var previousEnergyUsage = 0.0
 
-    override val carbonIntensity: Double
-        get() = _carbonIntensity
-    private var _carbonIntensity = 0.0
-
-    override val carbonEmission: Double
-        get() = _carbonEmission - previousCarbonEmission
-    private var _carbonEmission = 0.0
-    private var previousCarbonEmission = 0.0
-
     /**
      * Record the next cycle.
      */
@@ -98,8 +87,6 @@ public class PowerSourceTableReaderImpl(
         powerSource.updateCounters()
         _powerDraw = powerSource.powerDraw
         _energyUsage = powerSource.energyUsage
-        _carbonIntensity = powerSource.carbonIntensity
-        _carbonEmission = powerSource.carbonEmission
     }
 
     /**
@@ -107,12 +94,9 @@ public class PowerSourceTableReaderImpl(
      */
     override fun reset() {
         previousEnergyUsage = _energyUsage
-        previousCarbonEmission = _carbonEmission
 
         _hostsConnected = 0
         _powerDraw = 0.0
         _energyUsage = 0.0
-        _carbonIntensity = 0.0
-        _carbonEmission = 0.0
     }
 }

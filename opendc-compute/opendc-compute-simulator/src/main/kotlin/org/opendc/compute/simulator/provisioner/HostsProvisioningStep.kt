@@ -52,6 +52,7 @@ public class HostsProvisioningStep internal constructor(
             ) { "Compute service $serviceDomain does not exist" }
         val simHosts = mutableSetOf<SimHost>()
         val simPowerSources = mutableListOf<SimPowerSource>()
+        val simBatteries = mutableListOf<SimBattery>()
         val simPowerManagers = mutableListOf<SimPowerManager>()
 
         val engine = FlowEngine.create(ctx.dispatcher)
@@ -65,17 +66,19 @@ public class HostsProvisioningStep internal constructor(
             val simPowerSource = SimPowerSource(graph, cluster.powerSource.totalPower.toDouble(), carbonFragments, startTime)
             val simBattery = SimBattery(graph, cluster.powerSource.totalPower.toDouble(), startTime);
 
-            val simPowerManager = SimPowerManager(graph, cluster.powerSource.totalPower.toDouble(), startTime)
+            val simPowerManager = SimPowerManager(graph, cluster.powerSource.totalPower.toDouble(), startTime, simBattery, simPowerSource)
 
-            //service.addPowerSource(simPowerSource)
-            //simPowerSources.add(simPowerSource)
-
+            service.addPowerSource(simPowerSource)
+            simPowerSources.add(simPowerSource)
+            service.addBattery(simBattery)
+            simBatteries.add(simBattery)
             service.addPowerManager(simPowerManager)
             simPowerManagers.add(simPowerManager)
 
             val powerMux = Multiplexer(graph)
             graph.addEdge(simPowerManager, simPowerSource)
             graph.addEdge(simPowerManager, simBattery)
+           // graph.addEdge(simBattery, simPowerManager)
             graph.addEdge(powerMux, simPowerManager)
 
             // Create hosts, they are connected to the powerMux when SimMachine is created
@@ -105,6 +108,14 @@ public class HostsProvisioningStep internal constructor(
             for (simPowerSource in simPowerSources) {
                 // TODO: add close function
                 simPowerSource.close()
+            }
+
+            for (simBattery in simBatteries){
+                simBattery.close()
+            }
+
+            for (simPowerManager in simPowerManagers){
+                simPowerManager.close()
             }
         }
     }

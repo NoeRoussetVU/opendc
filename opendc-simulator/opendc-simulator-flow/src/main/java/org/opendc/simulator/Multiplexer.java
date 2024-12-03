@@ -80,7 +80,7 @@ public class Multiplexer extends FlowNode implements FlowSupplier, FlowConsumer 
 
             if (this.currentConsumerIdx != -1) {
                 this.pushSupply(
-                        this.consumerEdges.get(this.currentConsumerIdx), this.demands.get(this.currentConsumerIdx));
+                    this.consumerEdges.get(this.currentConsumerIdx), this.demands.get(this.currentConsumerIdx));
                 this.currentConsumerIdx = -1;
             }
 

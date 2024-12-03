@@ -53,6 +53,7 @@ import org.opendc.compute.simulator.telemetry.ComputeMetricReader;
 import org.opendc.compute.simulator.telemetry.SchedulerStats;
 import org.opendc.simulator.compute.power.SimPowerManager;
 import org.opendc.simulator.compute.power.SimPowerSource;
+import org.opendc.simulator.compute.power.SimBattery;
 import org.opendc.simulator.compute.workload.Workload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +105,11 @@ public final class ComputeService implements AutoCloseable {
      * The available powerSources
      */
     private final Set<SimPowerSource> powerSources = new HashSet<>();
+
+    /**
+     * The available batteries
+     */
+    private final Set<SimBattery> batteries = new HashSet<>();
 
     /**
      * The available powerManagers
@@ -308,6 +314,15 @@ public final class ComputeService implements AutoCloseable {
         powerSources.add(simPowerSource);
     }
 
+    public void addBattery(SimBattery simBattery) {
+        // Check if host is already known
+        if (batteries.contains(simBattery)) {
+            return;
+        }
+
+        batteries.add(simBattery);
+    }
+
     public void addPowerManager(SimPowerManager simPowerManager) {
         // Check if host is already known
         if (powerManagers.contains(simPowerManager)) {
@@ -349,6 +364,10 @@ public final class ComputeService implements AutoCloseable {
 
     public Set<SimPowerSource> getPowerSources() {
         return Collections.unmodifiableSet(this.powerSources);
+    }
+
+    public Set<SimBattery> getBatteries() {
+        return Collections.unmodifiableSet(this.batteries);
     }
 
     public Set<SimPowerManager> getPowerManagers() {return Collections.unmodifiableSet(this.powerManagers);}

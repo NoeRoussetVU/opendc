@@ -51,6 +51,8 @@ public final class SimPowerManager extends FlowNode implements FlowSupplier, Flo
     private ArrayList<Double> capacities = new ArrayList<>();
 
     private double capacity = Long.MAX_VALUE;
+    private SimBattery battery;
+    private SimPowerSource powerSource;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Basic Getters and Setters
@@ -105,10 +107,12 @@ public final class SimPowerManager extends FlowNode implements FlowSupplier, Flo
     // Constructors
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public SimPowerManager(FlowGraph graph, double max_capacity, long startTime) {
+    public SimPowerManager(FlowGraph graph, double max_capacity, long startTime, SimBattery battery, SimPowerSource powerSource) {
         super(graph);
 
         this.capacity = max_capacity;
+        this.battery = battery;
+        this.powerSource = powerSource;
 
         lastUpdate = this.clock.millis();
     }
@@ -160,7 +164,13 @@ public final class SimPowerManager extends FlowNode implements FlowSupplier, Flo
 
     @Override
     public void handleDemand(FlowEdge consumerEdge, double newPowerDemand) {
-        this.pushDemand(this.supplierEdges.get(0), newPowerDemand);
+        double batteryCurrentCapacity = this.battery.getCurrentCapacity();
+        if (batteryCurrentCapacity > newPowerDemand){
+            this.pushDemand(this.supplierEdges.get(1), newPowerDemand);
+        }
+        else{
+            this.pushDemand(this.supplierEdges.get(0), newPowerDemand);
+        }
     }
 
     @Override

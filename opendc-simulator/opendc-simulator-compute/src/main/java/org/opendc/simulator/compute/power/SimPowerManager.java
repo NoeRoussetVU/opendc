@@ -164,13 +164,8 @@ public final class SimPowerManager extends FlowNode implements FlowSupplier, Flo
 
     @Override
     public void handleDemand(FlowEdge consumerEdge, double newPowerDemand) {
-        double batteryCurrentCapacity = this.battery.getCurrentCapacity();
-        if (batteryCurrentCapacity > newPowerDemand){
-            this.pushDemand(this.supplierEdges.get(1), newPowerDemand);
-        }
-        else{
-            this.pushDemand(this.supplierEdges.get(0), newPowerDemand);
-        }
+        this.pushDemand(this.supplierEdges.get(0), newPowerDemand);
+        this.invalidate();
     }
 
     @Override
@@ -217,6 +212,8 @@ public final class SimPowerManager extends FlowNode implements FlowSupplier, Flo
 
     @Override
     public void removeSupplierEdge(FlowEdge supplierEdge) {
-
+        if (!supplierEdges.isEmpty()) {
+            supplierEdges.subList(0, supplierEdges.size()).clear();
+        }
     }
 }

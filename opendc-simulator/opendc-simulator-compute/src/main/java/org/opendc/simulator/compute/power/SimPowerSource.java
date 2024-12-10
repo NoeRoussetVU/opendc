@@ -39,6 +39,9 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     private double powerSupplied = 0.0f;
     private double totalEnergyUsage = 0.0f;
 
+    private double batteryPowerSupplied = 0.0f;
+    private double totalBatteryEnergyUsage = 0.0f;
+
     private double carbonIntensity = 0.0f;
     private double totalCarbonEmission = 0.0f;
 
@@ -46,6 +49,10 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     private FlowEdge managerEdge;
 
     private double capacity = Long.MAX_VALUE;
+
+    private SimBattery battery;
+    private final double chargeRate = 5000.0f;
+    private final double carbonThreshold = 100.0f;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Basic Getters and Setters
@@ -100,10 +107,11 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     // Constructors
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public SimPowerSource(FlowGraph graph, double max_capacity, List<CarbonFragment> carbonFragments, long startTime) {
+    public SimPowerSource(FlowGraph graph, double max_capacity, List<CarbonFragment> carbonFragments, long startTime, SimBattery battery) {
         super(graph);
 
         this.capacity = max_capacity;
+        this.battery = battery;
 
         if (carbonFragments != null) {
             this.carbonModel = new CarbonModel(graph, this, carbonFragments, startTime);
@@ -127,6 +135,30 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     @Override
     public long onUpdate(long now) {
         updateCounters();
+        if(carbonIntensity > carbonThreshold ){
+            if(battery.getCurrentCapacity() > battery.getMinChargedValue()){
+                battery.setBatteryState(SimBattery.STATE.SUPPLYING);
+            }
+            else {
+                battery.setBatteryState(SimBattery.STATE.IDLE);
+            }
+        }
+        else{
+            if(battery.getCurrentCapacity() < battery.getMaxChargedValue()){
+                battery.setBatteryState(SimBattery.STATE.CHARGING);
+            }
+            else {
+                battery.setBatteryState(SimBattery.STATE.IDLE);
+            }
+        }
+        if(battery.getBatteryState() == SimBattery.STATE.CHARGING){
+            battery.setChargeSupplied(chargeRate);
+            powerSupplied = chargeRate;
+        }
+       else if(battery.getBatteryState() == SimBattery.STATE.SUPPLYING){
+            powerSupplied = 0;
+        }
+        battery.onUpdate(now);
         return Long.MAX_VALUE;
     }
 
@@ -161,7 +193,12 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
 
         double powerSupply = this.powerDemand;
 
-        if (powerSupply != this.powerSupplied) {
+        if(battery.getBatteryState() == SimBattery.STATE.SUPPLYING){
+            this.powerSupplied = 0;
+            battery.handleDemand(this.managerEdge, powerSupply);
+        }
+        else {
+            battery.handleDemand(this.managerEdge,0);
             this.pushSupply(this.managerEdge, powerSupply);
         }
         this.invalidate();
@@ -185,7 +222,6 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
 
     // Update the carbon intensity of the power source
     public void updateCarbonIntensity(double carbonIntensity) {
-        System.out.println("update carbs " + carbonIntensity);
         this.updateCounters();
         this.carbonIntensity = carbonIntensity;
     }

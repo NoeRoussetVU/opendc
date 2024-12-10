@@ -61,14 +61,4 @@ public interface PowerManagerTableReader : Exportable {
      * The total energy consumption of the host since last sample in J.
      */
     public val energyUsage: Double
-
-    /**
-     * The current carbon intensity of the host in gCO2 / kW.
-     */
-    public val carbonIntensity: Double
-
-    /**
-     * The current carbon emission since the last deadline in g.
-     */
-    public val carbonEmission: Double
 }

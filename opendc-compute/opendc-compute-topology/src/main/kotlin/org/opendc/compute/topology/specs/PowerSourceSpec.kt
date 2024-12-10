@@ -30,5 +30,5 @@ public data class PowerSourceSpec(
     val name: String = "unknown",
     val meta: Map<String, Any> = emptyMap(),
     val totalPower: Long = Long.MAX_VALUE,
-    val carbonTracePath: String? = null,
+    val carbonTracePath: String? = "carbon_traces/carbon_2022.parquet",
 )

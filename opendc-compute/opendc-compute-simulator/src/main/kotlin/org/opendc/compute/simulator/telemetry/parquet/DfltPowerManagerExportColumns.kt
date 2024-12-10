@@ -70,16 +70,6 @@ public object DfltPowerManagerExportColumns {
             field = Types.required(FLOAT).named("energy_usage"),
         ) { it.energyUsage }
 
-    public val CARBON_INTENSITY: ExportColumn<PowerManagerTableReader> =
-        ExportColumn(
-            field = Types.required(FLOAT).named("carbon_intensity"),
-        ) { it.carbonIntensity }
-
-    public val CARBON_EMISSION: ExportColumn<PowerManagerTableReader> =
-        ExportColumn(
-            field = Types.required(FLOAT).named("carbon_emission"),
-        ) { it.carbonEmission }
-
     /**
      * The columns that are always included in the output file.
      */

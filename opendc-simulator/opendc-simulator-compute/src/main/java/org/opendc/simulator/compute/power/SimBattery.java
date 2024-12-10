@@ -35,11 +35,25 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
     private double powerSupplied = 0.0f;
     private double totalEnergyUsage = 0.0f;
 
-    private FlowEdge muxEdge;
-    private FlowEdge managerEdge;
+    private double chargeDemand = 0.0f;
+    private double chargeSupplied = 0.0f;
+    private double totalChargeReceived = 0.0f;
 
-    private double capacity = 1000000.0f;
-    private double currentCapacity = 900000.0f;
+    private FlowEdge muxEdge;
+
+    private double capacity = 10000000.0f;
+    private double currentCapacity = 0.0f;
+
+    private final double chargeRate = 50000.0f;
+    private final double minChargedValue = 100000.0f;
+    private final double maxChargedValue = 9000000.0f;
+
+    public enum STATE {
+        CHARGING,
+        IDLE,
+        SUPPLYING
+    }
+    STATE state;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Basic Getters and Setters
@@ -88,6 +102,24 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
         return this.currentCapacity;
     }
 
+    public double getMinChargedValue(){
+        return this.minChargedValue;
+    }
+
+    public double getMaxChargedValue(){
+        return this.maxChargedValue;
+    }
+
+    public STATE getBatteryState() { return state; }
+
+    public void setBatteryState(STATE newState) {
+        this.state = newState;
+    }
+
+    public void setChargeSupplied(double newSupply){
+        this.chargeSupplied = newSupply;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,6 +128,7 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
         super(graph);
 
         this.capacity = max_capacity;
+        this.state = STATE.CHARGING;
 
         lastUpdate = this.clock.millis();
     }
@@ -112,6 +145,12 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
     @Override
     public long onUpdate(long now) {
         updateCounters();
+        if(state != STATE.CHARGING){
+            chargeSupplied = 0;
+        }
+        if(state != STATE.SUPPLYING){
+            powerSupplied = 0;
+        }
         return Long.MAX_VALUE;
     }
 
@@ -129,9 +168,14 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
         long duration = now - lastUpdate;
         if (duration > 0) {
             double energyUsage = (this.powerSupplied * duration * 0.001);
-
             // Compute the energy usage of the machine
             this.totalEnergyUsage += energyUsage;
+            this.currentCapacity -= energyUsage;
+
+            double energyReceived = (this.chargeSupplied * duration * 0.001);
+            // Compute the energy usage of the machine
+            this.totalChargeReceived += energyReceived;
+            this.currentCapacity += energyReceived;
         }
     }
 
@@ -143,17 +187,12 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
     public void handleDemand(FlowEdge consumerEdge, double newPowerDemand) {
         this.powerDemand = newPowerDemand;
 
-        double powerSupply = this.powerDemand;
-
-        if (powerSupply != this.powerSupplied) {
-            this.pushSupply(this.muxEdge, powerSupply);
-        }
+        this.pushSupply(consumerEdge, newPowerDemand);
         this.invalidate();
     }
 
     @Override
     public void pushSupply(FlowEdge consumerEdge, double newSupply) {
-        this.currentCapacity -= newSupply;
         this.powerSupplied = newSupply;
         consumerEdge.pushSupply(newSupply);
     }
@@ -174,17 +213,18 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
 
     @Override
     public void handleSupply(FlowEdge supplierEdge, double newSupply) {
-        this.currentCapacity += newSupply;
+        //this.chargeSupplied += newSupply;
     }
 
     @Override
     public void pushDemand(FlowEdge supplierEdge, double newDemand) {
-
+//        this.chargeDemand = newDemand;
+//        this.supplierEdge.pushDemand(newDemand);
     }
 
     @Override
     public void addSupplierEdge(FlowEdge supplierEdge) {
-        this.managerEdge = supplierEdge;
+
     }
 
     @Override

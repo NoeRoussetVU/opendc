@@ -70,6 +70,15 @@ public object DfltBatteryExportColumns {
             field = Types.required(FLOAT).named("energy_usage"),
         ) { it.energyUsage }
 
+    public val CURRENT_CAPACITY: ExportColumn<BatteryTableReader> =
+        ExportColumn(
+            field = Types.required(FLOAT).named("current_capacity"),
+        ) { it.currentCapacity }
+
+    public val POWER_DEMAND: ExportColumn<BatteryTableReader> =
+        ExportColumn(
+            field = Types.required(FLOAT).named("power_demand"),
+        ) { it.powerDemand }
     /**
      * The columns that are always included in the output file.
      */

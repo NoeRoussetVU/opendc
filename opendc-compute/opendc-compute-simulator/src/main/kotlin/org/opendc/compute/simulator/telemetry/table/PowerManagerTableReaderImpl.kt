@@ -50,8 +50,6 @@ public class PowerManagerTableReaderImpl(
         _hostsConnected = table.hostsConnected
         _powerDraw = table.powerDraw
         _energyUsage = table.energyUsage
-        _carbonIntensity = table.carbonIntensity
-        _carbonEmission = table.carbonEmission
     }
 
     private val powerManager = powerManager
@@ -77,15 +75,6 @@ public class PowerManagerTableReaderImpl(
     private var _energyUsage = 0.0
     private var previousEnergyUsage = 0.0
 
-    override val carbonIntensity: Double
-        get() = _carbonIntensity
-    private var _carbonIntensity = 0.0
-
-    override val carbonEmission: Double
-        get() = _carbonEmission - previousCarbonEmission
-    private var _carbonEmission = 0.0
-    private var previousCarbonEmission = 0.0
-
     /**
      * Record the next cycle.
      */
@@ -98,8 +87,6 @@ public class PowerManagerTableReaderImpl(
         powerManager.updateCounters()
         _powerDraw = powerManager.powerDraw
         _energyUsage = powerManager.energyUsage
-        _carbonIntensity = powerManager.carbonIntensity
-        _carbonEmission = powerManager.carbonEmission
     }
 
     /**
@@ -107,12 +94,9 @@ public class PowerManagerTableReaderImpl(
      */
     override fun reset() {
         previousEnergyUsage = _energyUsage
-        previousCarbonEmission = _carbonEmission
 
         _hostsConnected = 0
         _powerDraw = 0.0
         _energyUsage = 0.0
-        _carbonIntensity = 0.0
-        _carbonEmission = 0.0
     }
 }

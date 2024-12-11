@@ -52,6 +52,7 @@ public class PowerSourceTableReaderImpl(
         _energyUsage = table.energyUsage
         _carbonIntensity = table.carbonIntensity
         _carbonEmission = table.carbonEmission
+        _powerDemand = table.powerDemand
     }
 
     private val powerSource = powerSource
@@ -86,6 +87,10 @@ public class PowerSourceTableReaderImpl(
     private var _carbonEmission = 0.0
     private var previousCarbonEmission = 0.0
 
+    override val powerDemand: Double
+        get() = _powerDemand
+    private var _powerDemand = 0.0
+
     /**
      * Record the next cycle.
      */
@@ -100,6 +105,7 @@ public class PowerSourceTableReaderImpl(
         _energyUsage = powerSource.energyUsage
         _carbonIntensity = powerSource.carbonIntensity
         _carbonEmission = powerSource.carbonEmission
+        _powerDemand = powerSource.powerDemand
     }
 
     /**
@@ -114,5 +120,6 @@ public class PowerSourceTableReaderImpl(
         _energyUsage = 0.0
         _carbonIntensity = 0.0
         _carbonEmission = 0.0
+        _powerDemand = 0.0
     }
 }

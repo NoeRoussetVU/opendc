@@ -71,4 +71,19 @@ public interface BatteryTableReader : Exportable {
      * The power demand of the battery.
      */
     public val powerDemand: Double
+
+    /**
+     * The charge supplied to the battery.
+     */
+    public val chargeSupplied: Double
+
+    /**
+     * The total charge received by the battery.
+     */
+    public val totalChargeReceived: Double
+
+    /**
+     * The state of the battery
+     */
+    public val batteryState: Int
 }

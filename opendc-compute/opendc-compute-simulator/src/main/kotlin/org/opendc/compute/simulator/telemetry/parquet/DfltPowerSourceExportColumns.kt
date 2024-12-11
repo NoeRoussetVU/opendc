@@ -80,6 +80,11 @@ public object DfltPowerSourceExportColumns {
             field = Types.required(FLOAT).named("carbon_emission"),
         ) { it.carbonEmission }
 
+    public val POWER_DEMAND: ExportColumn<PowerSourceTableReader> =
+        ExportColumn(
+            field = Types.required(FLOAT).named("power_demand"),
+        ) { it.powerDemand }
+
     /**
      * The columns that are always included in the output file.
      */

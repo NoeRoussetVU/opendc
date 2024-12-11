@@ -35,16 +35,15 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
     private double powerSupplied = 0.0f;
     private double totalEnergyUsage = 0.0f;
 
-    private double chargeDemand = 0.0f;
     private double chargeSupplied = 0.0f;
     private double totalChargeReceived = 0.0f;
 
-    private FlowEdge muxEdge;
+    private FlowEdge managerEdge;
 
     private double capacity = 10000000.0f;
     private double currentCapacity = 0.0f;
 
-    private final double chargeRate = 50000.0f;
+    private final double chargeRate = 5000.0f;
     private final double minChargedValue = 100000.0f;
     private final double maxChargedValue = 9000000.0f;
 
@@ -65,7 +64,7 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
      * @return <code>true</code> if the InPort is connected to an OutPort, <code>false</code> otherwise.
      */
     public boolean isConnected() {
-        return muxEdge != null;
+        return managerEdge != null;
     }
 
     /**
@@ -84,7 +83,6 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
         return this.powerSupplied;
     }
 
-
     /**
      * Return the cumulated energy usage of the machine (in J) measured at the InPort of the powers supply.
      */
@@ -92,6 +90,25 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
         return totalEnergyUsage;
     }
 
+    public double getChargeSupplied() {
+        return chargeSupplied;
+    }
+
+    public double getTotalChargeReceived() {
+        return totalChargeReceived;
+    }
+
+    public int getStateInt() {
+        if(state == STATE.CHARGING){
+            return 2;
+        }
+        else if(state == STATE.SUPPLYING){
+            return 1;
+        }
+        else{
+            return 0;
+        }
+    }
 
     @Override
     public double getCapacity() {
@@ -108,6 +125,10 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
 
     public double getMaxChargedValue(){
         return this.maxChargedValue;
+    }
+
+    public double getChargeRate(){
+        return this.chargeRate;
     }
 
     public STATE getBatteryState() { return state; }
@@ -199,12 +220,12 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
 
     @Override
     public void addConsumerEdge(FlowEdge consumerEdge) {
-        this.muxEdge = consumerEdge;
+        this.managerEdge = consumerEdge;
     }
 
     @Override
     public void removeConsumerEdge(FlowEdge consumerEdge) {
-        this.muxEdge = null;
+        this.managerEdge = null;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

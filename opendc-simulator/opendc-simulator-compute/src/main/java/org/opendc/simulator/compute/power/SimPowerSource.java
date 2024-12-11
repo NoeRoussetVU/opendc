@@ -51,7 +51,6 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     private double capacity = Long.MAX_VALUE;
 
     private SimBattery battery;
-    private final double chargeRate = 5000.0f;
     private final double carbonThreshold = 100.0f;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,6 +151,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
             }
         }
         if(battery.getBatteryState() == SimBattery.STATE.CHARGING){
+;           double chargeRate = battery.getChargeRate();
             battery.setChargeSupplied(chargeRate);
             powerSupplied = chargeRate;
         }
@@ -159,6 +159,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
             powerSupplied = 0;
         }
         battery.onUpdate(now);
+        updateCounters();
         return Long.MAX_VALUE;
     }
 

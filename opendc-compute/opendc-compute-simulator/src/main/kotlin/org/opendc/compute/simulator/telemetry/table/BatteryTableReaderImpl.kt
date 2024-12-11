@@ -52,6 +52,9 @@ public class BatteryTableReaderImpl(
         _energyUsage = table.energyUsage
         _currentCapacity = table.currentCapacity
         _powerDemand = table.powerDemand
+        _chargeSupplied = table.chargeSupplied
+        _totalChargeReceived = table.totalChargeReceived
+        _batteryState = table.batteryState
     }
 
     private val battery = battery
@@ -85,6 +88,19 @@ public class BatteryTableReaderImpl(
         get() = _powerDemand
     private var _powerDemand = 0.0
 
+    override val chargeSupplied: Double
+        get() = _chargeSupplied
+    private var _chargeSupplied = 0.0
+
+    override val totalChargeReceived: Double
+        get() = _totalChargeReceived - previousChargeReceived
+    private var _totalChargeReceived= 0.0
+    private var previousChargeReceived = 0.0
+
+    override val batteryState: Int
+        get() = _batteryState
+    private var _batteryState = 0
+
     /**
      * Record the next cycle.
      */
@@ -99,6 +115,9 @@ public class BatteryTableReaderImpl(
         _energyUsage = battery.energyUsage
         _currentCapacity = battery.currentCapacity
         _powerDemand = battery.powerDemand
+        _chargeSupplied = battery.chargeSupplied
+        _totalChargeReceived = battery.totalChargeReceived
+        _batteryState = battery.stateInt
     }
 
     /**
@@ -106,10 +125,14 @@ public class BatteryTableReaderImpl(
      */
     override fun reset() {
         previousEnergyUsage = _energyUsage
+        previousChargeReceived = _totalChargeReceived
 
         _hostsConnected = 0
         _powerDraw = 0.0
         _energyUsage = 0.0
         _currentCapacity = 0.0
+        _chargeSupplied = 0.0
+        _totalChargeReceived = 0.0
+        _batteryState = 0
     }
 }

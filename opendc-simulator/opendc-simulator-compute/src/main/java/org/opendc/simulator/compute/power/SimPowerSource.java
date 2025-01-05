@@ -52,6 +52,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
 
     private SimBattery battery;
     private final double carbonThreshold = 100.0f;
+    private final BatteryPolicy policy = new BatteryPolicy();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Basic Getters and Setters
@@ -134,22 +135,8 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     @Override
     public long onUpdate(long now) {
         updateCounters();
-        if(carbonIntensity > carbonThreshold ){
-            if(battery.getCurrentCapacity() > battery.getMinChargedValue()){
-                battery.setBatteryState(SimBattery.STATE.SUPPLYING);
-            }
-            else {
-                battery.setBatteryState(SimBattery.STATE.IDLE);
-            }
-        }
-        else{
-            if(battery.getCurrentCapacity() < battery.getMaxChargedValue()){
-                battery.setBatteryState(SimBattery.STATE.CHARGING);
-            }
-            else {
-                battery.setBatteryState(SimBattery.STATE.IDLE);
-            }
-        }
+        battery.setBatteryState(policy.carbonPolicy(battery, carbonIntensity));
+
         if(battery.getBatteryState() == SimBattery.STATE.CHARGING){
 ;           double chargeRate = battery.getChargeRate();
             battery.setChargeSupplied(chargeRate);

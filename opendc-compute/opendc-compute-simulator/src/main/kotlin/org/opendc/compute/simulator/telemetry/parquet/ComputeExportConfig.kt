@@ -38,7 +38,6 @@ import org.opendc.common.logger.logger
 import org.opendc.compute.simulator.telemetry.table.HostTableReader
 import org.opendc.compute.simulator.telemetry.table.PowerSourceTableReader
 import org.opendc.compute.simulator.telemetry.table.BatteryTableReader
-import org.opendc.compute.simulator.telemetry.table.PowerManagerTableReader
 import org.opendc.compute.simulator.telemetry.table.ServiceTableReader
 import org.opendc.compute.simulator.telemetry.table.TaskTableReader
 import org.opendc.trace.util.parquet.exporter.ColListSerializer
@@ -61,7 +60,6 @@ public data class ComputeExportConfig(
     public val taskExportColumns: Set<ExportColumn<TaskTableReader>>,
     public val powerSourceExportColumns: Set<ExportColumn<PowerSourceTableReader>>,
     public val batteryExportColumns: Set<ExportColumn<BatteryTableReader>>,
-    public val powerManagerExportColumns: Set<ExportColumn<PowerManagerTableReader>>,
     public val serviceExportColumns: Set<ExportColumn<ServiceTableReader>>,
 ) {
     public constructor(
@@ -69,14 +67,12 @@ public data class ComputeExportConfig(
         taskExportColumns: Collection<ExportColumn<TaskTableReader>>,
         powerSourceExportColumns: Collection<ExportColumn<PowerSourceTableReader>>,
         batteryExportColumns: Collection<ExportColumn<BatteryTableReader>>,
-        powerManagerExportColumns: Collection<ExportColumn<PowerManagerTableReader>>,
         serviceExportColumns: Collection<ExportColumn<ServiceTableReader>>,
     ) : this(
         hostExportColumns.toSet() + DfltHostExportColumns.BASE_EXPORT_COLUMNS,
         taskExportColumns.toSet() + DfltTaskExportColumns.BASE_EXPORT_COLUMNS,
         powerSourceExportColumns.toSet() + DfltPowerSourceExportColumns.BASE_EXPORT_COLUMNS,
         batteryExportColumns.toSet() + DfltBatteryExportColumns.BASE_EXPORT_COLUMNS,
-        powerManagerExportColumns.toSet() + DfltPowerManagerExportColumns.BASE_EXPORT_COLUMNS,
         serviceExportColumns.toSet() + DfltServiceExportColumns.BASE_EXPORT_COLUMNS,
     )
 
@@ -104,7 +100,6 @@ public data class ComputeExportConfig(
             DfltTaskExportColumns
             DfltPowerSourceExportColumns
             DfltBatteryExportColumns
-            DfltPowerManagerExportColumns
             DfltServiceExportColumns
         }
 
@@ -120,7 +115,6 @@ public data class ComputeExportConfig(
                 taskExportColumns = ExportColumn.getAllLoadedColumns(),
                 powerSourceExportColumns = ExportColumn.getAllLoadedColumns(),
                 batteryExportColumns = ExportColumn.getAllLoadedColumns(),
-                powerManagerExportColumns = ExportColumn.getAllLoadedColumns(),
                 serviceExportColumns = ExportColumn.getAllLoadedColumns(),
             )
         }
@@ -150,10 +144,6 @@ public data class ComputeExportConfig(
                         ListSerializer(columnSerializer<ServiceTableReader>()).descriptor,
                     )
                     element(
-                        "powerManagerExportColumns",
-                        ListSerializer(columnSerializer<ServiceTableReader>()).descriptor,
-                    )
-                    element(
                         "serviceExportColumns",
                         ListSerializer(columnSerializer<ServiceTableReader>()).descriptor,
                     )
@@ -174,7 +164,6 @@ public data class ComputeExportConfig(
                 val taskFields: List<ExportColumn<TaskTableReader>> = elem["taskExportColumns"].toFieldList()
                 val powerSourceFields: List<ExportColumn<PowerSourceTableReader>> = elem["powerSourceExportColumns"].toFieldList()
                 val batteryFields: List<ExportColumn<BatteryTableReader>> = elem["batteryExportColumns"].toFieldList()
-                val powerManagerFields: List<ExportColumn<PowerManagerTableReader>> = elem["powerManagerExportColumns"].toFieldList()
                 val serviceFields: List<ExportColumn<ServiceTableReader>> = elem["serviceExportColumns"].toFieldList()
 
                 return ComputeExportConfig(
@@ -182,7 +171,6 @@ public data class ComputeExportConfig(
                     taskExportColumns = taskFields,
                     powerSourceExportColumns = powerSourceFields,
                     batteryExportColumns = batteryFields,
-                    powerManagerExportColumns = powerManagerFields,
                     serviceExportColumns = serviceFields,
                 )
             }
@@ -219,12 +207,6 @@ public data class ComputeExportConfig(
                     encodeSerializableElement(
                         descriptor,
                         4,
-                        ColListSerializer(columnSerializer<PowerManagerTableReader>()),
-                        value.powerManagerExportColumns.toList(),
-                    )
-                    encodeSerializableElement(
-                        descriptor,
-                        5,
                         ColListSerializer(columnSerializer<ServiceTableReader>()),
                         value.serviceExportColumns.toList(),
                     )

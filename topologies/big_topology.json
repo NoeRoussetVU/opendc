@@ -16,7 +16,14 @@
                         "memorySize": 256000
                     }
                 }
-            ]
+            ],
+            "battery":
+            {
+                "policy": "carbon",
+                "policyThreshold": 100.0,
+                "capacity": 300000.0,
+                "chargeRate": 300.0
+            }
         },
         {
             "name": "C02",
@@ -34,7 +41,14 @@
                         "memorySize": 64000
                     }
                 }
-            ]
+            ],
+            "battery":
+            {
+                "policy": "carbon",
+                "policyThreshold": 100.0,
+                "capacity": 300000.0,
+                "chargeRate": 300.0
+            }
         },
         {
             "name": "C03",
@@ -52,7 +66,14 @@
                         "memorySize": 128000
                     }
                 }
-            ]
+            ],
+            "battery":
+            {
+                "policy": "carbon",
+                "policyThreshold": 100.0,
+                "capacity": 300000.0,
+                "chargeRate": 300.0
+            }
         }
     ]
 }

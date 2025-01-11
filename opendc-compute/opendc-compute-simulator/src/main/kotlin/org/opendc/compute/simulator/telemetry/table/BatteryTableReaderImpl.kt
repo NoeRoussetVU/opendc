@@ -115,7 +115,7 @@ public class BatteryTableReaderImpl(
         _energyUsage = battery.energyUsage
         _currentCapacity = battery.currentCapacity
         _powerDemand = battery.powerDemand
-        _chargeSupplied = battery.chargeSupplied
+        _chargeSupplied = battery.chargeReceived
         _totalChargeReceived = battery.totalChargeReceived
         _batteryState = battery.stateInt
     }

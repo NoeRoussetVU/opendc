@@ -28,24 +28,24 @@ import org.opendc.simulator.engine.*;
 /**
  * A {@link SimPsu} implementation that estimates the power consumption based on CPU usage.
  */
-public final class SimBattery  extends FlowNode implements FlowSupplier, FlowConsumer {
+public final class SimBattery  extends FlowNode implements FlowSupplier {
     private long lastUpdate;
 
     private double powerDemand = 0.0f;
-    private double powerSupplied = 0.0f;
+    public double powerSupplied = 0.0f;
     private double totalEnergyUsage = 0.0f;
 
-    private double chargeSupplied = 0.0f;
+    private double chargeReceived = 0.0f;
     private double totalChargeReceived = 0.0f;
 
-    private FlowEdge managerEdge;
+    private FlowEdge muxEdge;
 
-    private double capacity = 10000000.0f;
+    private double capacity;
     private double currentCapacity = 0.0f;
 
-    private final double chargeRate = 5000.0f;
-    private final double minChargedValue = 100000.0f;
-    private final double maxChargedValue = 9000000.0f;
+    private double chargeRate;
+    private double minChargedValue;
+    private double maxChargedValue;
 
     public enum STATE {
         CHARGING,
@@ -64,7 +64,7 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
      * @return <code>true</code> if the InPort is connected to an OutPort, <code>false</code> otherwise.
      */
     public boolean isConnected() {
-        return managerEdge != null;
+        return muxEdge != null;
     }
 
     /**
@@ -90,8 +90,8 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
         return totalEnergyUsage;
     }
 
-    public double getChargeSupplied() {
-        return chargeSupplied;
+    public double getChargeReceived() {
+        return chargeReceived;
     }
 
     public double getTotalChargeReceived() {
@@ -133,23 +133,33 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
 
     public STATE getBatteryState() { return state; }
 
+    public void setPowerDemand(double powerDemand) { this.powerDemand = powerDemand; }
+
     public void setBatteryState(STATE newState) {
         this.state = newState;
     }
 
-    public void setChargeSupplied(double newSupply){
-        this.chargeSupplied = newSupply;
+    public void setChargeReceived(double newSupply){
+        this.chargeReceived = newSupply;
+    }
+
+    public void setCurrentCapacity(double newSupply){
+        currentCapacity += newSupply;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public SimBattery(FlowGraph graph, double max_capacity, long startTime) {
+    public SimBattery(FlowGraph graph, double max_capacity, double chargeRate) {
         super(graph);
 
         this.capacity = max_capacity;
-        this.state = STATE.CHARGING;
+        this.minChargedValue = 0.1*max_capacity;
+        this.maxChargedValue = 0.98*max_capacity;
+        this.chargeRate = chargeRate;
+
+        this.state = STATE.IDLE;
 
         lastUpdate = this.clock.millis();
     }
@@ -166,12 +176,6 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
     @Override
     public long onUpdate(long now) {
         updateCounters();
-        if(state != STATE.CHARGING){
-            chargeSupplied = 0;
-        }
-        if(state != STATE.SUPPLYING){
-            powerSupplied = 0;
-        }
         return Long.MAX_VALUE;
     }
 
@@ -189,14 +193,10 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
         long duration = now - lastUpdate;
         if (duration > 0) {
             double energyUsage = (this.powerSupplied * duration * 0.001);
-            // Compute the energy usage of the machine
             this.totalEnergyUsage += energyUsage;
-            this.currentCapacity -= energyUsage;
 
-            double energyReceived = (this.chargeSupplied * duration * 0.001);
-            // Compute the energy usage of the machine
+            double energyReceived = (this.chargeReceived * duration * 0.001);
             this.totalChargeReceived += energyReceived;
-            this.currentCapacity += energyReceived;
         }
     }
 
@@ -215,41 +215,17 @@ public final class SimBattery  extends FlowNode implements FlowSupplier, FlowCon
     @Override
     public void pushSupply(FlowEdge consumerEdge, double newSupply) {
         this.powerSupplied = newSupply;
+        this.currentCapacity -= newSupply;
         consumerEdge.pushSupply(newSupply);
     }
 
     @Override
     public void addConsumerEdge(FlowEdge consumerEdge) {
-        this.managerEdge = consumerEdge;
+        this.muxEdge = consumerEdge;
     }
 
     @Override
     public void removeConsumerEdge(FlowEdge consumerEdge) {
-        this.managerEdge = null;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Battery Related functionality
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void handleSupply(FlowEdge supplierEdge, double newSupply) {
-        //this.chargeSupplied += newSupply;
-    }
-
-    @Override
-    public void pushDemand(FlowEdge supplierEdge, double newDemand) {
-//        this.chargeDemand = newDemand;
-//        this.supplierEdge.pushDemand(newDemand);
-    }
-
-    @Override
-    public void addSupplierEdge(FlowEdge supplierEdge) {
-
-    }
-
-    @Override
-    public void removeSupplierEdge(FlowEdge supplierEdge) {
-
+        this.muxEdge = null;
     }
 }

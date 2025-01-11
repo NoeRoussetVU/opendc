@@ -39,20 +39,19 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     private double powerSupplied = 0.0f;
     private double totalEnergyUsage = 0.0f;
 
-    private double batteryPowerSupplied = 0.0f;
-    private double totalBatteryEnergyUsage = 0.0f;
-
     private double carbonIntensity = 0.0f;
     private double totalCarbonEmission = 0.0f;
 
     private CarbonModel carbonModel = null;
-    private FlowEdge managerEdge;
+    private FlowEdge muxEdge;
 
     private double capacity = Long.MAX_VALUE;
 
+    // Battery
     private SimBattery battery;
-    private final double carbonThreshold = 100.0f;
-    private final BatteryPolicy policy = new BatteryPolicy();
+    private BatteryPolicy policy;
+    private String policyName;
+    private double policyThreshold;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Basic Getters and Setters
@@ -64,7 +63,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
      * @return <code>true</code> if the InPort is connected to an OutPort, <code>false</code> otherwise.
      */
     public boolean isConnected() {
-        return managerEdge != null;
+        return muxEdge != null;
     }
 
     /**
@@ -107,11 +106,14 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     // Constructors
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public SimPowerSource(FlowGraph graph, double max_capacity, List<CarbonFragment> carbonFragments, long startTime, SimBattery battery) {
+    public SimPowerSource(FlowGraph graph, double max_capacity, List<CarbonFragment> carbonFragments, long startTime, SimBattery battery, String policy, double policyTheshold) {
         super(graph);
 
         this.capacity = max_capacity;
         this.battery = battery;
+        this.policyName = policy;
+        this.policyThreshold = policyTheshold;
+        this.policy = new BatteryPolicy(policyName, this.policyThreshold);
 
         if (carbonFragments != null) {
             this.carbonModel = new CarbonModel(graph, this, carbonFragments, startTime);
@@ -135,18 +137,22 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     @Override
     public long onUpdate(long now) {
         updateCounters();
-        battery.setBatteryState(policy.carbonPolicy(battery, carbonIntensity));
+        battery.setBatteryState(policy.mainPolicy(battery, carbonIntensity, powerDemand));
 
         if(battery.getBatteryState() == SimBattery.STATE.CHARGING){
 ;           double chargeRate = battery.getChargeRate();
-            battery.setChargeSupplied(chargeRate);
+            this.battery.powerSupplied = 0;
+            this.battery.setCurrentCapacity(chargeRate);
+            battery.setChargeReceived(chargeRate);
             powerSupplied = chargeRate;
         }
        else if(battery.getBatteryState() == SimBattery.STATE.SUPPLYING){
-            powerSupplied = 0;
+           battery.setChargeReceived(0);
+           powerSupplied = 0;
         }
-        battery.onUpdate(now);
-        updateCounters();
+       else if(battery.getBatteryState() == SimBattery.STATE.IDLE){
+            battery.setChargeReceived(0);
+        }
         return Long.MAX_VALUE;
     }
 
@@ -164,9 +170,9 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
         long duration = now - lastUpdate;
         if (duration > 0) {
             double energyUsage = (this.powerSupplied * duration * 0.001);
-
             // Compute the energy usage of the machine
             this.totalEnergyUsage += energyUsage;
+
             this.totalCarbonEmission += this.carbonIntensity * (energyUsage / 3600000.0);
         }
     }
@@ -177,17 +183,14 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
 
     @Override
     public void handleDemand(FlowEdge consumerEdge, double newPowerDemand) {
-        this.powerDemand = newPowerDemand;
-
-        double powerSupply = this.powerDemand;
-
         if(battery.getBatteryState() == SimBattery.STATE.SUPPLYING){
             this.powerSupplied = 0;
-            battery.handleDemand(this.managerEdge, powerSupply);
+            this.battery.handleDemand(this.muxEdge, newPowerDemand);
         }
         else {
-            battery.handleDemand(this.managerEdge,0);
-            this.pushSupply(this.managerEdge, powerSupply);
+            this.powerDemand = newPowerDemand;
+            this.battery.handleDemand(this.muxEdge, 0);
+            this.pushSupply(this.muxEdge, newPowerDemand);
         }
         this.invalidate();
     }
@@ -200,12 +203,12 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
 
     @Override
     public void addConsumerEdge(FlowEdge consumerEdge) {
-        this.managerEdge = consumerEdge;
+        this.muxEdge = consumerEdge;
     }
 
     @Override
     public void removeConsumerEdge(FlowEdge consumerEdge) {
-        this.managerEdge = null;
+        this.muxEdge = null;
     }
 
     // Update the carbon intensity of the power source

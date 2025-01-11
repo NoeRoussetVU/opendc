@@ -136,10 +136,41 @@
                         "$ref": "#/$defs/host"
                     },
                     "minItems": 1
+                },
+                "battery": {
+                    "description": "Battery used by the power source",
+                    "type": "object",
+                    "properties": {
+                        "policy": {
+                            "description": "The policy type of the battery",
+                            "type": "string"
+                        },
+                        "policyThreshold": {
+                            "description": "Threshold value for the policy",
+                            "type": "number"
+                        },
+                        "capacity": {
+                            "description": "The maximum energy capacity of the battery in ???",
+                            "type": "number",
+                            "default": 300000
+                        },
+                        "chargeRate": {
+                            "description": "The charging rate of the battery in ???",
+                            "type": "number",
+                            "default": 300
+                        }
+                    },
+                    "required": [
+                        "policy",
+                        "policyThreshold",
+                        "capacity",
+                        "chargeRate"
+                    ]
                 }
             },
             "required": [
-                "hosts"
+                "hosts",
+                "battery"
             ]
         }
     },

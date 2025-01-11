@@ -30,7 +30,6 @@ import org.opendc.compute.topology.specs.HostSpec
 import org.opendc.simulator.Multiplexer
 import org.opendc.simulator.compute.power.SimPowerSource
 import org.opendc.simulator.engine.FlowEngine
-import org.opendc.simulator.compute.power.SimPowerManager
 import org.opendc.simulator.compute.power.SimBattery
 
 /**
@@ -53,7 +52,6 @@ public class HostsProvisioningStep internal constructor(
         val simHosts = mutableSetOf<SimHost>()
         val simPowerSources = mutableListOf<SimPowerSource>()
         val simBatteries = mutableListOf<SimBattery>()
-        val simPowerManagers = mutableListOf<SimPowerManager>()
 
         val engine = FlowEngine.create(ctx.dispatcher)
         val graph = engine.newGraph()
@@ -62,22 +60,16 @@ public class HostsProvisioningStep internal constructor(
             // Create the Power Source to which hosts are connected
 
             val carbonFragments = getCarbonFragments("carbon_traces/carbon_2012.parquet")
-
-            val simBattery = SimBattery(graph, cluster.powerSource.totalPower.toDouble(), startTime);
-            val simPowerSource = SimPowerSource(graph, cluster.powerSource.totalPower.toDouble(), carbonFragments, startTime, simBattery)
-
-            val simPowerManager = SimPowerManager(graph, cluster.powerSource.totalPower.toDouble(), startTime, simBattery, simPowerSource)
+            val simBattery = SimBattery(graph, cluster.battery.capacity.toDouble(), cluster.battery.chargeRate.toDouble());
+            val simPowerSource = SimPowerSource(graph, cluster.powerSource.totalPower.toDouble(), carbonFragments, startTime, simBattery, cluster.battery.policy, cluster.battery.policyThreshold.toDouble())
 
             service.addPowerSource(simPowerSource)
             simPowerSources.add(simPowerSource)
             service.addBattery(simBattery)
             simBatteries.add(simBattery)
-            service.addPowerManager(simPowerManager)
-            simPowerManagers.add(simPowerManager)
 
             val powerMux = Multiplexer(graph)
-            graph.addEdge(simPowerManager, simPowerSource)
-            graph.addEdge(powerMux, simPowerManager)
+            graph.addEdge(powerMux, simPowerSource)
 
             // Create hosts, they are connected to the powerMux when SimMachine is created
             for (hostSpec in cluster.hostSpecs) {
@@ -110,10 +102,6 @@ public class HostsProvisioningStep internal constructor(
 
             for (simBattery in simBatteries){
                 simBattery.close()
-            }
-
-            for (simPowerManager in simPowerManagers){
-                simPowerManager.close()
             }
         }
     }

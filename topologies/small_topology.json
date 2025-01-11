@@ -16,7 +16,14 @@
                         "memorySize": 140457600000
                     }
                 }
-            ]
+            ],
+            "battery":
+            {
+                "policy": "carbon",
+                "policyThreshold": 100.0,
+                "capacity": 300000.0,
+                "chargeRate": 300.0
+            }
         }
     ]
 }

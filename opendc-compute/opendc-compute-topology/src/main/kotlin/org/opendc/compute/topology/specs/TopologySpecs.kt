@@ -52,6 +52,7 @@ public data class ClusterJSONSpec(
     val hosts: List<HostJSONSpec>,
     val powerSource: PowerSourceJSONSpec = PowerSourceJSONSpec.DFLT,
     val location: String = "NL",
+    val battery: BatteryJSONSpec
 )
 
 /**
@@ -155,3 +156,18 @@ public data class PowerSourceJSONSpec(
             )
     }
 }
+
+/**
+ * Definition of a battery used for JSON input.
+ * @property capacity
+ * @property policy
+ * @property policyThreshold
+ * @property chargeRate
+ */
+@Serializable
+public data class BatteryJSONSpec(
+    val capacity: Float,
+    val policy: String,
+    val policyThreshold: Float,
+    val chargeRate: Float
+)

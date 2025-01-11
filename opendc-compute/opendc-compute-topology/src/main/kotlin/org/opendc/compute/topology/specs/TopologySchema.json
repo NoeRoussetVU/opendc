@@ -150,12 +150,12 @@
                             "type": "number"
                         },
                         "capacity": {
-                            "description": "The maximum energy capacity of the battery in ???",
+                            "description": "The maximum energy capacity of the battery",
                             "type": "number",
                             "default": 300000
                         },
                         "chargeRate": {
-                            "description": "The charging rate of the battery in ???",
+                            "description": "The charging rate of the battery",
                             "type": "number",
                             "default": 300
                         }

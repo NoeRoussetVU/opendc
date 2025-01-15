@@ -141,6 +141,7 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
 
     public void setChargeReceived(double newSupply){
         this.chargeReceived = newSupply;
+        updateCounters();
     }
 
     public void setCurrentCapacity(double newSupply){
@@ -155,8 +156,8 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
         super(graph);
 
         this.capacity = max_capacity;
-        this.minChargedValue = 0.1*max_capacity;
-        this.maxChargedValue = 0.98*max_capacity;
+        this.minChargedValue = 0.2*max_capacity;
+        this.maxChargedValue = 0.8*max_capacity;
         this.chargeRate = chargeRate;
 
         this.state = STATE.IDLE;
@@ -194,9 +195,17 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
         if (duration > 0) {
             double energyUsage = (this.powerSupplied * duration * 0.001);
             this.totalEnergyUsage += energyUsage;
+            this.currentCapacity -= energyUsage;
 
             double energyReceived = (this.chargeReceived * duration * 0.001);
             this.totalChargeReceived += energyReceived;
+            this.currentCapacity += energyReceived;
+            if(this.currentCapacity > this.maxChargedValue){
+                this.setBatteryState(STATE.IDLE);
+            }
+            else if(this.currentCapacity < this.minChargedValue){
+                this.setBatteryState(STATE.IDLE);
+            }
         }
     }
 
@@ -215,7 +224,7 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
     @Override
     public void pushSupply(FlowEdge consumerEdge, double newSupply) {
         this.powerSupplied = newSupply;
-        this.currentCapacity -= newSupply;
+        //this.currentCapacity -= newSupply;
         consumerEdge.pushSupply(newSupply);
     }
 

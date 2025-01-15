@@ -144,9 +144,8 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
         if(battery.getBatteryState() == SimBattery.STATE.CHARGING){
 ;           double chargeRate = battery.getChargeRate();
             this.battery.powerSupplied = 0;
-            if(now > this.chargingRate + 50000.0){
-                this.battery.setCurrentCapacity(chargeRate);
-                battery.setChargeReceived(chargeRate);
+            if(now > this.chargingRate){
+                this.battery.setChargeReceived(chargeRate);
                 this.powerToBattery = chargeRate;
             }
             this.chargingRate = now;

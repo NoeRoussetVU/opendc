@@ -46,6 +46,8 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     private FlowEdge muxEdge;
 
     private double capacity = Long.MAX_VALUE;
+    private double powerToBattery = 0.0f;
+    private long chargingRate;
 
     // Battery
     private SimBattery battery;
@@ -119,6 +121,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
             this.carbonModel = new CarbonModel(graph, this, carbonFragments, startTime);
         }
         lastUpdate = this.clock.millis();
+        chargingRate = this.clock.millis();
     }
 
     public void close() {
@@ -136,23 +139,28 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
 
     @Override
     public long onUpdate(long now) {
-        updateCounters();
         battery.setBatteryState(policy.mainPolicy(battery, carbonIntensity, powerDemand));
 
         if(battery.getBatteryState() == SimBattery.STATE.CHARGING){
 ;           double chargeRate = battery.getChargeRate();
             this.battery.powerSupplied = 0;
-            this.battery.setCurrentCapacity(chargeRate);
-            battery.setChargeReceived(chargeRate);
-            powerSupplied = chargeRate;
+            if(now > this.chargingRate + 50000.0){
+                this.battery.setCurrentCapacity(chargeRate);
+                battery.setChargeReceived(chargeRate);
+                this.powerToBattery = chargeRate;
+            }
+            this.chargingRate = now;
         }
        else if(battery.getBatteryState() == SimBattery.STATE.SUPPLYING){
            battery.setChargeReceived(0);
-           powerSupplied = 0;
+            this.powerToBattery = 0;
+            powerSupplied = 0;
         }
        else if(battery.getBatteryState() == SimBattery.STATE.IDLE){
+            this.powerToBattery = 0;
             battery.setChargeReceived(0);
         }
+        updateCounters();
         return Long.MAX_VALUE;
     }
 
@@ -170,10 +178,11 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
         long duration = now - lastUpdate;
         if (duration > 0) {
             double energyUsage = (this.powerSupplied * duration * 0.001);
+            double energyToBattery = (this.powerToBattery * duration * 0.001);
             // Compute the energy usage of the machine
-            this.totalEnergyUsage += energyUsage;
+            this.totalEnergyUsage += energyUsage + energyToBattery;
 
-            this.totalCarbonEmission += this.carbonIntensity * (energyUsage / 3600000.0);
+            this.totalCarbonEmission += this.carbonIntensity * ((energyUsage + energyToBattery) / 3600000.0);
         }
     }
 

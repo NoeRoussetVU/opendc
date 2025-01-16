@@ -19,7 +19,7 @@ public class BatteryPolicy {
         if(Objects.equals(policy, "carbon")){
             return carbonPolicy(battery, carbonIntensity);
         }
-        else if(Objects.equals(policy, "energy")){
+        else if(Objects.equals(policy, "power")){
             return powerDemandPolicy(battery, powerDemand);
         }
         else if(Objects.equals(policy, "cyclic")){

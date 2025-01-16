@@ -39,6 +39,7 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
     private double totalChargeReceived = 0.0f;
 
     private FlowEdge muxEdge;
+    private SimPowerSource powerSource;
 
     private double capacity;
     private double currentCapacity = 0.0f;
@@ -156,7 +157,7 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
         super(graph);
 
         this.capacity = max_capacity;
-        this.minChargedValue = 0.2*max_capacity;
+        this.minChargedValue = 0.1*max_capacity;
         this.maxChargedValue = 0.8*max_capacity;
         this.chargeRate = chargeRate;
 
@@ -194,12 +195,25 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
         long duration = now - lastUpdate;
         if (duration > 0) {
             double energyUsage = (this.powerSupplied * duration * 0.001);
-            this.totalEnergyUsage += energyUsage;
-            this.currentCapacity -= energyUsage;
+            if(this.currentCapacity - energyUsage > 0){
+                this.totalEnergyUsage += energyUsage;
+                this.currentCapacity -= energyUsage;
+            }
+            else{
+                this.setBatteryState(STATE.IDLE);
+                this.powerSource.pushSupply(muxEdge, this.powerSupplied);
+            }
 
             double energyReceived = (this.chargeReceived * duration * 0.001);
-            this.totalChargeReceived += energyReceived;
-            this.currentCapacity += energyReceived;
+            if(this.currentCapacity + energyReceived < this.capacity){
+                this.totalChargeReceived += energyReceived;
+                this.currentCapacity += energyReceived;
+            }
+            else {
+                this.powerSource.setPowerToBattery(0.0);
+                this.setBatteryState(STATE.IDLE);
+            }
+
             if(this.currentCapacity > this.maxChargedValue){
                 this.setBatteryState(STATE.IDLE);
             }
@@ -236,5 +250,9 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
     @Override
     public void removeConsumerEdge(FlowEdge consumerEdge) {
         this.muxEdge = null;
+    }
+
+    public void addPowerSource(SimPowerSource powerSource){
+        this.powerSource = powerSource;
     }
 }

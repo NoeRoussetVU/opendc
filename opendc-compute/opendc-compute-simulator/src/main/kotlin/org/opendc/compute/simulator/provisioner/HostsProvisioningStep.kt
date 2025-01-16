@@ -62,6 +62,7 @@ public class HostsProvisioningStep internal constructor(
             val carbonFragments = getCarbonFragments("carbon_traces/carbon_test.parquet")
             val simBattery = SimBattery(graph, cluster.battery.capacity.toDouble(), cluster.battery.chargeRate.toDouble());
             val simPowerSource = SimPowerSource(graph, cluster.powerSource.totalPower.toDouble(), carbonFragments, startTime, simBattery, cluster.battery.policy, cluster.battery.policyThreshold.toDouble())
+            simBattery.addPowerSource(simPowerSource)
 
             service.addPowerSource(simPowerSource)
             simPowerSources.add(simPowerSource)

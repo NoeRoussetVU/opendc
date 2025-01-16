@@ -46,14 +46,14 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
     private FlowEdge muxEdge;
 
     private double capacity = Long.MAX_VALUE;
-    private double powerToBattery = 0.0f;
-    private long chargingRate;
 
     // Battery
     private SimBattery battery;
     private BatteryPolicy policy;
     private String policyName;
     private double policyThreshold;
+    private long chargingRate;
+    private double powerToBattery = 0.0f;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Basic Getters and Setters
@@ -104,6 +104,8 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
         return this.capacity;
     }
 
+    public void setPowerToBattery(double powerToBattery){this.powerToBattery = powerToBattery;}
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +118,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
         this.policyName = policy;
         this.policyThreshold = policyTheshold;
         this.policy = new BatteryPolicy(policyName, this.policyThreshold);
+        this.battery.addConsumerEdge(this.muxEdge);
 
         if (carbonFragments != null) {
             this.carbonModel = new CarbonModel(graph, this, carbonFragments, startTime);
@@ -142,7 +145,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
         battery.setBatteryState(policy.mainPolicy(battery, carbonIntensity, powerDemand));
 
         if(battery.getBatteryState() == SimBattery.STATE.CHARGING){
-;           double chargeRate = battery.getChargeRate();
+            double chargeRate = battery.getChargeRate();
             this.battery.powerSupplied = 0;
             if(now > this.chargingRate){
                 this.battery.setChargeReceived(chargeRate);
@@ -191,22 +194,23 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
 
     @Override
     public void handleDemand(FlowEdge consumerEdge, double newPowerDemand) {
+        this.powerDemand = newPowerDemand;
         if(battery.getBatteryState() == SimBattery.STATE.SUPPLYING){
             this.powerSupplied = 0;
             this.battery.handleDemand(this.muxEdge, newPowerDemand);
+            this.invalidate();
         }
         else {
-            this.powerDemand = newPowerDemand;
             this.battery.handleDemand(this.muxEdge, 0);
             this.pushSupply(this.muxEdge, newPowerDemand);
         }
-        this.invalidate();
     }
 
     @Override
     public void pushSupply(FlowEdge consumerEdge, double newSupply) {
         this.powerSupplied = newSupply;
-        consumerEdge.pushSupply(newSupply);
+        this.muxEdge.pushSupply(newSupply);
+        this.invalidate();
     }
 
     @Override

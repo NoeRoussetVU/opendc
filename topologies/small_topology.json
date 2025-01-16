@@ -19,10 +19,10 @@
             ],
             "battery":
             {
-                "policy": "cyclic",
-                "policyThreshold": 100.0,
-                "capacity": 223200000.0,
-                "chargeRate": 558.0
+                "policy": "carbon",
+                "policyThreshold": 50.0,
+                "capacity": 8640000,
+                "chargeRate": 1350.0
             }
         }
     ]

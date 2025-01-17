@@ -2,10 +2,13 @@
     "name": "simple",
     "topologies": [
         {
-            "pathToFile": "topologies/small_topology.json"
+            "pathToFile": "topologies/small_topology_carbon.json"
         },
         {
-            "pathToFile": "topologies/big_topology.json"
+            "pathToFile": "topologies/small_topology_power.json"
+        },
+        {
+            "pathToFile": "topologies/small_topology_cyclic.json"
         }
     ],
     "workloads": [

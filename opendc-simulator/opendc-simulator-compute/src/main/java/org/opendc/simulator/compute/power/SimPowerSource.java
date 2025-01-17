@@ -92,7 +92,7 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
      * Return the cumulated energy usage of the machine (in J) measured at the InPort of the powers supply.
      */
     public double getEnergyUsage() {
-        return totalEnergyUsage;
+        return this.totalEnergyUsage;
     }
 
     public double getCarbonEmission() {
@@ -156,7 +156,6 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
        else if(battery.getBatteryState() == SimBattery.STATE.SUPPLYING){
            battery.setChargeReceived(0);
             this.powerToBattery = 0;
-            powerSupplied = 0;
         }
        else if(battery.getBatteryState() == SimBattery.STATE.IDLE){
             this.powerToBattery = 0;
@@ -183,7 +182,6 @@ public final class SimPowerSource extends FlowNode implements FlowSupplier {
             double energyToBattery = (this.powerToBattery * duration * 0.001);
             // Compute the energy usage of the machine
             this.totalEnergyUsage += energyUsage + energyToBattery;
-
             this.totalCarbonEmission += this.carbonIntensity * ((energyUsage + energyToBattery) / 3600000.0);
         }
     }

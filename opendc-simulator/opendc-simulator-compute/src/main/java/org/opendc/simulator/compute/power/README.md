@@ -62,3 +62,17 @@ They are written in the topology files, there is one for each cluster.
   ]
 } 
 ```
+## Design
+![alt text](Battery_design.png "")
+
+## Example
+An experiment using all the policies is available in the experiment folder.  To run it, you can download this repository and run ExperimentCli with the following argument:
+
+	--experiment-path "simulation-experiment/inputs/experiments simple_experiment.json"
+
+The energy usage and carbon emissions can be shown by running the demo.py file, which will show the following figure:
+
+![alt text](Results.png "")
+
+
+

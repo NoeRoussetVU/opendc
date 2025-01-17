@@ -20,7 +20,7 @@
             "battery":
             {
                 "policy": "carbon",
-                "policyThreshold": 50.0,
+                "policyThreshold": 53.5,
                 "capacity": 8640000,
                 "chargeRate": 1350.0
             }

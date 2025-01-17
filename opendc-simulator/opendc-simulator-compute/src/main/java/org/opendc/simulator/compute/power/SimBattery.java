@@ -145,10 +145,6 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
         updateCounters();
     }
 
-    public void setCurrentCapacity(double newSupply){
-        currentCapacity += newSupply;
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,7 +195,7 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
                 this.totalEnergyUsage += energyUsage;
                 this.currentCapacity -= energyUsage;
             }
-            else{
+            else if(this.getBatteryState() == STATE.SUPPLYING){
                 this.setBatteryState(STATE.IDLE);
                 this.powerSource.pushSupply(muxEdge, this.powerSupplied);
             }
@@ -210,7 +206,6 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
                 this.currentCapacity += energyReceived;
             }
             else {
-                this.powerSource.setPowerToBattery(0.0);
                 this.setBatteryState(STATE.IDLE);
             }
 
@@ -238,7 +233,6 @@ public final class SimBattery  extends FlowNode implements FlowSupplier {
     @Override
     public void pushSupply(FlowEdge consumerEdge, double newSupply) {
         this.powerSupplied = newSupply;
-        //this.currentCapacity -= newSupply;
         consumerEdge.pushSupply(newSupply);
     }
 

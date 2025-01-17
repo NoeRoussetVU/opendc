@@ -66,9 +66,13 @@ They are written in the topology files, there is one for each cluster.
 ![alt text](Battery_design.png "")
 
 ## Example
-An experiment using all the policies is available in the experiment folder.  To run it, you can download this repository and run ExperimentCli with the following argument:
+An experiment using all three policies is available in the experiment folder.  To run it, you can download this repository and run ExperimentCli with the following argument:
 
 	--experiment-path "simulation-experiment/inputs/experiments simple_experiment.json"
+
+The results will be placed in the output folder. From the battery file, you can read the following columns:
+
+	['timestamp' 'timestamp_absolute' 'hosts_connected' 'power_draw'  'energy_usage' 'current_capacity' 'power_demand' 'charge_supplied'  'total_charge_received' 'battery_state']
 
 The energy usage and carbon emissions can be shown by running the demo.py file, which will show the following figure:
 
